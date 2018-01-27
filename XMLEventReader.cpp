@@ -75,13 +75,13 @@ bool XMLEventReader::hasNext()
         m_bHasNextCalled = true;
     }
 
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         return false;
     }
-
-    char cByte = '\0';
-    m_aStream.get(cByte);
 
     if (m_aStream.bad() == true)
     {
@@ -124,13 +124,13 @@ std::unique_ptr<XMLEvent> XMLEventReader::nextEvent()
 
 bool XMLEventReader::HandleTag()
 {
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         throw new std::runtime_error("Tag incomplete.");
     }
-
-    char cByte = '\0';
-    m_aStream.get(cByte);
 
     if (m_aStream.bad() == true)
     {
@@ -172,9 +172,17 @@ bool XMLEventReader::HandleTag()
 
 bool XMLEventReader::HandleTagStart(const char& cFirstByte)
 {
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         throw new std::runtime_error("Tag start incomplete.");
+    }
+
+    if (m_aStream.bad() == true)
+    {
+        throw new std::runtime_error("Stream is bad.");
     }
 
     std::unique_ptr<std::string> pNamePrefix(nullptr);
@@ -183,17 +191,10 @@ bool XMLEventReader::HandleTagStart(const char& cFirstByte)
 
     pNameLocalPart->push_back(cFirstByte);
 
-    char cByte = '\0';
-    m_aStream.get(cByte);
-
-    if (m_aStream.bad() == true)
-    {
-        throw new std::runtime_error("Stream is bad.");
-    }
-
     do
     {
-        /** @todo Check, if special characters appear at the very start where not allowed. */
+        /** @todo Check, if special characters appear at the very start where not allowed.
+          * This might apply for the namespace prefix as well as for the element name. */
 
         if (cByte == ':')
         {
@@ -224,12 +225,12 @@ bool XMLEventReader::HandleTagStart(const char& cFirstByte)
         }
         else if (cByte == '/')
         {
+            m_aStream.get(cByte);
+
             if (m_aStream.eof() == true)
             {
                 throw new std::runtime_error("Tag start incomplete.");
             }
-
-            m_aStream.get(cByte);
 
             if (m_aStream.bad() == true)
             {
@@ -275,12 +276,12 @@ bool XMLEventReader::HandleTagStart(const char& cFirstByte)
 
             while (true)
             {
+                m_aStream.get(cByte);
+
                 if (m_aStream.eof() == true)
                 {
                     throw new std::runtime_error("Tag start incomplete.");
                 }
-
-                m_aStream.get(cByte);
 
                 if (m_aStream.bad() == true)
                 {
@@ -332,33 +333,38 @@ bool XMLEventReader::HandleTagStart(const char& cFirstByte)
 
         m_aStream.get(cByte);
 
+        if (m_aStream.eof() == true)
+        {
+            throw new std::runtime_error("Tag start incomplete.");
+        }
+
         if (m_aStream.bad() == true)
         {
             throw new std::runtime_error("Stream is bad.");
         }
 
-    } while (m_aStream.eof() == false);
+    } while (true);
 
     return true;
 }
 
 bool XMLEventReader::HandleTagEnd()
 {
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         throw new std::runtime_error("Tag end incomplete.");
     }
 
-    std::unique_ptr<std::string> pNamePrefix(nullptr);
-    std::unique_ptr<std::string> pNameLocalPart(new std::string());
-
-    char cByte = '\0';
-    m_aStream.get(cByte);
-
     if (m_aStream.bad() == true)
     {
         throw new std::runtime_error("Stream is bad.");
     }
+
+    std::unique_ptr<std::string> pNamePrefix(nullptr);
+    std::unique_ptr<std::string> pNameLocalPart(new std::string());
 
     // No validity check for the XML element name is needed
     // if end tags are compared to start tags and the start
@@ -416,12 +422,17 @@ bool XMLEventReader::HandleTagEnd()
 
         m_aStream.get(cByte);
 
+        if (m_aStream.eof() == true)
+        {
+            throw new std::runtime_error("End tag incomplete.");
+        }
+
         if (m_aStream.bad() == true)
         {
             throw new std::runtime_error("Stream is bad.");
         }
 
-    } while (m_aStream.eof() == false);
+    } while (true);
 
     if (bComplete != true)
     {
@@ -433,11 +444,6 @@ bool XMLEventReader::HandleTagEnd()
 
 bool XMLEventReader::HandleText(const char& cFirstByte)
 {
-    if (m_aStream.eof() == true)
-    {
-        return false;
-    }
-
     std::unique_ptr<std::string> pData(new std::string);
 
     if (cFirstByte == '&')
@@ -454,9 +460,14 @@ bool XMLEventReader::HandleText(const char& cFirstByte)
 
     char cByte = '\0';
 
-    while (m_aStream.eof() != true)
+    while (true)
     {
         m_aStream.get(cByte);
+
+        if (m_aStream.eof() == true)
+        {
+            break;
+        }
 
         if (m_aStream.bad() == true)
         {
@@ -526,12 +537,12 @@ bool XMLEventReader::HandleProcessingInstruction()
 
             while (nMatchCount < 2)
             {
+                m_aStream.get(cByte);
+
                 if (m_aStream.eof() == true)
                 {
                     throw new std::runtime_error("XML declaration incomplete.");
                 }
-
-                m_aStream.get(cByte);
 
                 if (m_aStream.bad() == true)
                 {
@@ -560,12 +571,12 @@ bool XMLEventReader::HandleProcessingInstruction()
 
     while (nMatchCount < 2)
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             throw new std::runtime_error("Processing instruction data incomplete.");
         }
-
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
@@ -616,12 +627,12 @@ bool XMLEventReader::HandleProcessingInstructionTarget(std::unique_ptr<std::stri
 
     while (nMatchCount < 2)
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             throw new std::runtime_error("Processing instruction target name incomplete.");
         }
-
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
@@ -680,13 +691,13 @@ bool XMLEventReader::HandleProcessingInstructionTarget(std::unique_ptr<std::stri
 
 bool XMLEventReader::HandleMarkupDeclaration()
 {
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         throw new std::runtime_error("Markup declaration incomplete.");
     }
-
-    char cByte = '\0';
-    m_aStream.get(cByte);
 
     if (m_aStream.bad() == true)
     {
@@ -707,13 +718,13 @@ bool XMLEventReader::HandleMarkupDeclaration()
 
 bool XMLEventReader::HandleComment()
 {
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         throw new std::runtime_error("Comment incomplete.");
     }
-
-    char cByte = '\0';
-    m_aStream.get(cByte);
 
     if (m_aStream.bad() == true)
     {
@@ -733,12 +744,12 @@ bool XMLEventReader::HandleComment()
 
     do
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             throw new std::runtime_error("Comment incomplete.");
         }
-
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
@@ -807,13 +818,12 @@ bool XMLEventReader::HandleAttributes(const char& cFirstByte, std::unique_ptr<st
 
     do
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             throw new std::runtime_error("Tag start incomplete.");
         }
-
-        cByte = '\0';
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
@@ -830,13 +840,12 @@ bool XMLEventReader::HandleAttributes(const char& cFirstByte, std::unique_ptr<st
         }
         else if (cByte == '/')
         {
+            m_aStream.get(cByte);
+
             if (m_aStream.eof() == true)
             {
                 throw new std::runtime_error("Tag start incomplete.");
             }
-
-            cByte = '\0';
-            m_aStream.get(cByte);
 
             if (m_aStream.bad() == true)
             {
@@ -910,13 +919,12 @@ bool XMLEventReader::HandleAttributeName(const char& cFirstByte, std::unique_ptr
 
     do
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             throw new std::runtime_error("Attribute name incomplete.");
         }
-
-        cByte = '\0';
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
@@ -1011,13 +1019,12 @@ bool XMLEventReader::HandleAttributeValue(std::unique_ptr<std::string>& pValue)
 
     do
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             throw new std::runtime_error("Attribute value incomplete.");
         }
-
-        cByte = '\0';
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
@@ -1052,13 +1059,13 @@ void XMLEventReader::ResolveEntity(std::unique_ptr<std::string>& pResolvedText)
         throw new std::invalid_argument("No nullptr passed.");
     }
 
+    char cByte = '\0';
+    m_aStream.get(cByte);
+
     if (m_aStream.eof() == true)
     {
         throw new std::runtime_error("Entity incomplete.");
     }
-
-    char cByte = '\0';
-    m_aStream.get(cByte);
 
     if (m_aStream.bad() == true)
     {
@@ -1076,12 +1083,12 @@ void XMLEventReader::ResolveEntity(std::unique_ptr<std::string>& pResolvedText)
 
         do
         {
+            m_aStream.get(cByte);
+
             if (m_aStream.eof() == true)
             {
                 throw new std::runtime_error("Entity incomplete.");
             }
-
-            m_aStream.get(cByte);
 
             if (m_aStream.bad() == true)
             {
@@ -1118,17 +1125,16 @@ void XMLEventReader::ResolveEntity(std::unique_ptr<std::string>& pResolvedText)
  */
 char XMLEventReader::ConsumeWhitespace()
 {
-    char cByte;
+    char cByte('\0');
 
     do
     {
+        m_aStream.get(cByte);
+
         if (m_aStream.eof() == true)
         {
             return '\0';
         }
-
-        cByte = '\0';
-        m_aStream.get(cByte);
 
         if (m_aStream.bad() == true)
         {
