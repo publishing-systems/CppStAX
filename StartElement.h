@@ -37,9 +37,9 @@ public:
     StartElement(std::unique_ptr<QName> pName, std::unique_ptr<std::list<std::unique_ptr<Attribute>>> pAttributes);
 
 public:
-    const std::shared_ptr<Attribute> getAttributeByName(const QName& aName);
-    const std::shared_ptr<std::list<std::shared_ptr<Attribute>>> getAttributes();
-    const QName& getName();
+    const std::shared_ptr<Attribute> getAttributeByName(const QName& aName) const;
+    const std::shared_ptr<std::list<std::shared_ptr<Attribute>>> getAttributes() const;
+    const QName& getName() const;
 
 protected:
     std::unique_ptr<QName> m_pName;

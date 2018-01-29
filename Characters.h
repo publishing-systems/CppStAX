@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Stephan Kreutzer
+/* Copyright (C) 2017-2018 Stephan Kreutzer
  *
  * This file is part of CppStAX.
  *
@@ -36,8 +36,8 @@ public:
     Characters(std::unique_ptr<std::string> pData);
 
 public:
-    const std::string& getData();
-    const bool& isWhiteSpace();
+    const std::string& getData() const;
+    const bool& isWhiteSpace() const;
 
 protected:
     std::unique_ptr<std::string> m_pData;

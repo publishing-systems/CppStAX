@@ -44,12 +44,12 @@ Characters::Characters(std::unique_ptr<std::string> pData):
     }
 }
 
-const std::string& Characters::getData()
+const std::string& Characters::getData() const
 {
     return *m_pData;
 }
 
-const bool& Characters::isWhiteSpace()
+const bool& Characters::isWhiteSpace() const
 {
     return m_bIsWhiteSpace;
 }

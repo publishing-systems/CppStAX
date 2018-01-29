@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Stephan Kreutzer
+/* Copyright (C) 2017-2018 Stephan Kreutzer
  *
  * This file is part of CppStAX.
  *
@@ -34,7 +34,7 @@ Comment::Comment(std::unique_ptr<std::string> pText):
     }
 }
 
-const std::string& Comment::getText()
+const std::string& Comment::getText() const
 {
     return *m_pText;
 }

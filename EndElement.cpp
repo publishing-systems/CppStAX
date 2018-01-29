@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 Stephan Kreutzer
+/* Copyright (C) 2017-2018 Stephan Kreutzer
  *
  * This file is part of CppStAX.
  *
@@ -34,7 +34,7 @@ EndElement::EndElement(std::unique_ptr<QName> pName):
     }
 }
 
-const QName& EndElement::getName()
+const QName& EndElement::getName() const
 {
     return *m_pName;
 }

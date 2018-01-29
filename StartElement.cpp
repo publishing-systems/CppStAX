@@ -51,7 +51,7 @@ StartElement::StartElement(std::unique_ptr<QName> pName, std::unique_ptr<std::li
 /**
  * @retval nullptr In case the attribute couldn't be found.
  */
-const std::shared_ptr<Attribute> StartElement::getAttributeByName(const QName& aName)
+const std::shared_ptr<Attribute> StartElement::getAttributeByName(const QName& aName) const
 {
     for (std::list<std::shared_ptr<Attribute>>::iterator iter = m_pAttributes->begin();
           iter != m_pAttributes->end();
@@ -66,12 +66,12 @@ const std::shared_ptr<Attribute> StartElement::getAttributeByName(const QName& a
     return nullptr;
 }
 
-const std::shared_ptr<std::list<std::shared_ptr<Attribute>>> StartElement::getAttributes()
+const std::shared_ptr<std::list<std::shared_ptr<Attribute>>> StartElement::getAttributes() const
 {
     return m_pAttributes;
 }
 
-const QName& StartElement::getName()
+const QName& StartElement::getName() const
 {
     return *m_pName;
 }
