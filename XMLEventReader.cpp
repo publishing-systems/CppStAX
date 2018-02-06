@@ -51,7 +51,8 @@ XMLEventReader::XMLEventReader(std::istream& aStream):
     /** @todo Load more from a catalogue, which itself is written in XML and needs to be read
       * in here by another local XMLEventReader object, containing mappings from entity to
       * replacement characters. No need to deal with DTDs as they're non-XML, and extracting
-      * those mappings from a DTD can be a separate program or manual procedure. */
+      * those mappings from a DTD can be a separate program or manual procedure. Also see
+      * intermediate workaround method XMLEventReader::addToEntityReplacementDictionary(). */
 }
 
 XMLEventReader::~XMLEventReader()
@@ -122,6 +123,21 @@ std::unique_ptr<XMLEvent> XMLEventReader::nextEvent()
     return std::move(pEvent);
 }
 
+int XMLEventReader::addToEntityReplacementDictionary(const std::string& strName, const std::string& strReplacementText)
+{
+       if (strName == "amp" ||
+           strName == "lt" ||
+           strName == "gt" ||
+           strName == "apos" ||
+           strName == "quot")
+       {
+           throw new std::invalid_argument("Redefinition of built-in entity.");
+       }
+
+       m_aEntityReplacementDictionary[strName] = strReplacementText;
+       return 0;
+}
+
 bool XMLEventReader::HandleTag()
 {
     char cByte = '\0';
@@ -164,8 +180,11 @@ bool XMLEventReader::HandleTag()
     }
     else
     {
+        int nByte(cByte);
         std::stringstream aMessage;
-        aMessage << "Unknown byte '" << cByte << "' within element.";
+        aMessage << "Unknown byte '" << cByte << "' (0x"
+                 << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                 << ") within element.";
         throw new std::runtime_error(aMessage.str());
     }
 }
@@ -324,11 +343,11 @@ bool XMLEventReader::HandleTagStart(const char& cFirstByte)
         else
         {
             int nByte(cByte);
-            std::stringstream strMessage;
-            strMessage << "Character '" << cByte << "' (0x"
-                       << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
-                       << ") not supported in a start tag name.";
-            throw new std::runtime_error(strMessage.str());
+            std::stringstream aMessage;
+            aMessage << "Character '" << cByte << "' (0x"
+                     << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                     << ") not supported in a start tag name.";
+            throw new std::runtime_error(aMessage.str());
         }
 
         m_aStream.get(cByte);
@@ -413,11 +432,11 @@ bool XMLEventReader::HandleTagEnd()
         else
         {
             int nByte(cByte);
-            std::stringstream strMessage;
-            strMessage << "Character '" << cByte << "' (0x"
-                       << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
-                       << ") not supported in an end tag name.";
-            throw new std::runtime_error(strMessage.str());
+            std::stringstream aMessage;
+            aMessage << "Character '" << cByte << "' (0x"
+                     << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                     << ") not supported in an end tag name.";
+            throw new std::runtime_error(aMessage.str());
         }
 
         m_aStream.get(cByte);
@@ -672,11 +691,11 @@ bool XMLEventReader::HandleProcessingInstructionTarget(std::unique_ptr<std::stri
                 if (std::isalpha(cByte, m_aLocale) != true)
                 {
                     int nByte(cByte);
-                    std::stringstream strMessage;
-                    strMessage << "Character '" << cByte << "' (0x"
-                                << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
-                                << ") not supported as first character of an processing instruction target name.";
-                    throw new std::runtime_error(strMessage.str());
+                    std::stringstream aMessage;
+                    aMessage << "Character '" << cByte << "' (0x"
+                               << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                               << ") not supported as first character of an processing instruction target name.";
+                    throw new std::runtime_error(aMessage.str());
                 }
 
                 pName = std::unique_ptr<std::string>(new std::string);
@@ -910,11 +929,11 @@ bool XMLEventReader::HandleAttributeName(const char& cFirstByte, std::unique_ptr
     else
     {
         int nByte(cByte);
-        std::stringstream strMessage;
-        strMessage << "Character '" << cByte << "' (0x"
-                    << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
-                    << ") not supported as first character of an attribute name.";
-        throw new std::runtime_error(strMessage.str());
+        std::stringstream aMessage;
+        aMessage << "Character '" << cByte << "' (0x"
+                 << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                 << ") not supported as first character of an attribute name.";
+        throw new std::runtime_error(aMessage.str());
     }
 
     do
@@ -983,11 +1002,11 @@ bool XMLEventReader::HandleAttributeName(const char& cFirstByte, std::unique_ptr
         else
         {
             int nByte(cByte);
-            std::stringstream strMessage;
-            strMessage << "Character '" << cByte << "' (0x"
-                       << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
-                       << ") not supported in an attribute name.";
-            throw new std::runtime_error(strMessage.str());
+            std::stringstream aMessage;
+            aMessage << "Character '" << cByte << "' (0x"
+                     << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                     << ") not supported in an attribute name.";
+            throw new std::runtime_error(aMessage.str());
         }
 
     } while (true);
@@ -1008,11 +1027,11 @@ bool XMLEventReader::HandleAttributeValue(std::unique_ptr<std::string>& pValue)
              cDelimiter != '"')
     {
         int nByte(cDelimiter);
-        std::stringstream strMessage;
-        strMessage << "Attribute value doesn't start with a delimiter like ''' or '\"', instead, '" << cDelimiter << "' (0x"
-                    << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
-                    << ") was found.";
-        throw new std::runtime_error(strMessage.str());
+        std::stringstream aMessage;
+        aMessage << "Attribute value doesn't start with a delimiter like ''' or '\"', instead, '" << cDelimiter << "' (0x"
+                 << std::hex << std::uppercase << nByte << std::nouppercase << std::dec
+                 << ") was found.";
+        throw new std::runtime_error(aMessage.str());
     }
 
     char cByte('\0');

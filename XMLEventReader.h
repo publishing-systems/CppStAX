@@ -43,6 +43,9 @@ public:
     bool hasNext();
     std::unique_ptr<XMLEvent> nextEvent();
 
+public:
+    int addToEntityReplacementDictionary(const std::string& strName, const std::string& strReplacementText);
+
 protected:
     bool HandleTag();
     bool HandleTagStart(const char& cFirstByte);

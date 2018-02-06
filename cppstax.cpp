@@ -165,19 +165,19 @@ int Run(std::istream& aStream)
             cppstax::EndElement& aEndElement = pEvent->asEndElement();
             cppstax::QName aName = aEndElement.getName();
 
-            std::string strName("</");
+            std::string strTag("</");
             std::string strPrefix(aName.getPrefix());
 
             if (!strPrefix.empty())
             {
-                strName += strPrefix;
-                strName += ":";
+                strTag += strPrefix;
+                strTag += ":";
             }
 
-            strName += aName.getLocalPart();
-            strName += ">";
+            strTag += aName.getLocalPart();
+            strTag += ">";
 
-            std::cout << strName;
+            std::cout << strTag;
         }
         else if (pEvent->isCharacters() == true)
         {
